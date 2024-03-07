@@ -26,7 +26,7 @@ adjust a flight's route in their area, but this is ad hoc and rarely more than a
 **The mean flight fuel saving on a given day for ALL continental flights is 
 between 11% and 18%! On windy days, many flights are improved by 30% or more.**
 
-!(Example screenshot of web ui)[/static/screenshot/example1.png]
+![Example screenshot of web ui](/static/screenshot/example1.png)
 
 The `static/` directory includes a simple web ui to view the output; in addition to
 metrics about individual flights in the data table, you can compare the original flight
