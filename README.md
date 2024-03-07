@@ -23,6 +23,15 @@ adjust a flight's route in their area, but this is ad hoc and rarely more than a
 - Use genetic algorithms to adjust flight path to use less fuel / less flight time
 - Produce cool maps of optimized paths and sum metrics
 
+Because both fetching from the FlightAware API (or scraping the web view) and
+applying the genetic algorithm path improvements are CPU intensive, the code
+uses a worker pool coordinated by Postgres. Due to the nature of the problem,
+computation shards extremely well (by flight), and thus can be scaled infinitely.
+
+The example data was generated over several days, running in real-time on a cluster
+of 45 machines, fetching and optimizing weather and flights in real time for the 
+entire continental US.
+
 **The mean flight fuel saving on a given day for ALL continental flights is 
 between 11% and 18%! On windy days, many flights are improved by 30% or more.**
 
