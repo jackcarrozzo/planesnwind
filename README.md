@@ -24,7 +24,7 @@ adjust a flight's route in their area, but this is ad hoc and rarely more than a
 - Produce cool maps of optimized paths and sum metrics
 
 Because both fetching from the FlightAware API (or scraping the web view) and
-applying the genetic algorithm path improvements are CPU intensive, the code
+applying the genetic algorithm path improvements are resource intensive, the code
 uses a worker pool coordinated by Postgres. Due to the nature of the problem,
 computation shards extremely well (by flight), and thus can be scaled infinitely.
 
