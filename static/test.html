@@ -1,0 +1,80 @@
+<html>
+    <head><title>tester</title></head>
+    <link href="css.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="datatable.js"></script>
+    <script type="text/javascript" src="infobox.js"></script>
+
+    <script type="text/javascript">
+     var ib;
+
+     function init() {
+         var cvs=document.getElementById("cvs");
+         var ctx=cvs.getContext("2d");
+
+         cvs.setAttribute("width", window.innerWidth);
+         cvs.setAttribute("height", window.innerHeight);
+
+         ctx.clearRect(0,0,window.innerWidth,window.innerHeight);
+
+         ctx.globalAlpha=1.0;
+         ctx.fillStyle = '#ffaaaa';
+         ctx.fillRect(0,0,window.innerWidth,window.innerHeight);
+
+         var dt=new DataTable({
+             height: 800,
+             width: 500,
+             offsetX: 50,
+             offsetY: -400,
+             cols: [
+                 {key: 'ident',
+                  title: 'Ident'},
+                 {key: 'effo',
+                  title: 'Overall',
+                  color: '#ff0000'
+                 },
+                 {key: 'effd',
+                  title: 'With D'}
+             ],
+             canvasobj: cvs,
+             canvasctx: ctx
+         });
+
+         /*
+            601 | RPA6056 | KLGA   | KBOS | 2018-10-22 13:27:53 | 2018-10-22 14:07:26 | E75S      | "ROC-FPS"=>"33.064516", "ROD-FPS"=>"-12.500000", "GC-SEG-D"=>"269711.726622", "DESC-ASPD"=>"301.970124", "BEST-SEG-D"=>"266045.259371", "CLIMB-ASPD"=>"317.884828", "CRUISE-ALT"=>"14646.667000", "TOTAL-SECS"=>"2281.000000", "BEST-PARAMS"=>"[0.3,-0.2587574,0.7,0.093296856,-0.17939758,0.3,0.02093992,0.7,0.020937866,-0.20077203,0.3,0.03369526,0.7,-0.38325644]", "CRUISE-ASPD"=>"351.581318", "GC-SEG-SECS"=>"1435.343896", "BEST-SEG-SECS"=>"1391.783325", "CLIMB-END-IND"=>"6", "OPTIMIZE-SECS"=>"1.250000", "PATHS-CHECKED"=>"4200", "SELECTED-SECS"=>"1413.000000", "DESC-START-IND"=>"20", "ORIG-SEG-SIM-D"=>"289924.730321", "SELECT-END-IND"=>"23", "SELECT-START-IND"=>"4", "ORIG-SEG-SIM-SECS"=>"1543.151786", "ORIG-SEG-REAL-SECS"=>"1413.000000"
+
+          */
+         dt.setdata({
+             something: 7,
+             data: [
+                 {ident:'RPA6065', effo:2.3, effd:0.89},
+                 {ident:'DAL065', effo:1.3, effd:0.21},
+                 {ident:'JBU65', effo:1.24, effd:0.43},
+                 {ident:'JBU6065', effo:2.56, effd:0.48},
+                 {ident:'AA6065', effo:2.1, effd:0.98}
+             ]
+         });
+         dt.render();
+         dt.register_click_cb(function(a) {console.log("cb:",a);});
+
+         ib=new InfoBox({
+             offsetX: 800,
+             offsetY: -300,
+             titlebgalpha: 0.4,
+             canvasobj: cvs,
+             canvasctx: ctx
+         });
+
+         ib.setdata({
+             title: "things are great",
+             text: "To wrap text with HTML5 Canvas, we can create a custom function that requires the canvas context, a text string, a position, a max width, and a line height. The function should use the measureText() method of the canvas context to calculate when the next line should wrap."
+         });
+
+         ib.render();
+     }
+    </script>
+    <body onload="init();" bgcolor="#fff">
+        <div>
+            <canvas id="cvs"></canvas>
+        </div>
+    </body>
+</html>

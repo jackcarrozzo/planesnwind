@@ -1,0 +1,378 @@
+<html>
+    <head>
+        <title>PNW</title>
+        <meta name="viewport"
+              content="user-scalable=no,width=device-width,initial-scale=1,maximum-scale=1">
+        <meta name="msapplication-tap-highlight" content="no">
+    </head>
+
+    <link href="css.css" type="text/css" rel="stylesheet" />
+    <script type="text/javascript" src="airports.js"></script>
+    <!-- <script type="text/javascript" src="flights.js"></script> -->
+    <script type="text/javascript" src="flightpaths.js"></script>
+    <script type="text/javascript" src="winds.js"></script>
+    <script type="text/javascript" src="map.js"></script>
+    <script type="text/javascript" src="datatable.js"></script>
+    <script type="text/javascript" src="infobox.js"></script>
+    <script type="text/javascript">
+
+     var map0=new FlightMap({
+         bgcolor: "#fff"
+     });
+
+     var ib,dt,it;
+
+     function handle_resp() {
+         var robj=JSON.parse(this.responseText);
+
+         map0.render_single_path({
+             pts_ar: robj,
+             lines: false,
+             color: '#c60fab',
+             ptrad: 2
+         });
+
+         console.log("fetching other path data...");
+
+         var req = new XMLHttpRequest();
+         req.addEventListener("load", handle_other_resp);
+         req.open("GET", "http://localhost:8802/flights/current");
+         req.send();
+     }
+
+     function handle_other_resp() {
+         var robj=JSON.parse(this.responseText);
+
+         map0.render_single_path({
+             pts_ar: robj,
+             lines: false,
+             color: '#f2b10e',
+             ptrad: 2
+         });
+     }
+
+     function nab_path_data(flight_db_id) {
+         console.log("fetching path data...");
+
+         var req = new XMLHttpRequest();
+         req.addEventListener("load", handle_resp);
+         req.open("GET", "http://localhost:8802/flights/"+flight_db_id);
+         req.send();
+     }
+
+     function init() {
+         map0.setup();
+         map0.render_airports(Airports);
+         map0.render_winds(Winds);
+         map0.render_flights(FlightPaths);
+
+         map0.set_paths(FlightPaths);
+         map0.render_sel_paths(68);
+
+         var i,thisfl;
+         for (i=0;i<FlightAnalysis.length;i++) {
+             thisfl=FlightAnalysis[i];
+
+             FlightAnalysis[i]["percimprov"]=100*(parseFloat(thisfl.meta["ORIG-SEG-SIM-SECS"])-
+                                                  parseFloat(thisfl.meta["BEST-SEG-SECS"]))/
+             parseFloat(thisfl.meta["ORIG-SEG-SIM-SECS"]);
+
+             FlightAnalysis[i]["percimprovconstr"]=100*(parseFloat(thisfl.meta["ORIG-SEG-SIM-SECS"])-
+                                                        parseFloat(thisfl.meta["CONSTR-BEST-SEG-SECS"]))/
+             parseFloat(thisfl.meta["ORIG-SEG-SIM-SECS"]);
+         }
+         FlightAnalysis.sort(function(a,b) {
+             return b.percimprov-a.percimprov;
+         });
+
+         var overall=0.0;
+         var constrained=0.0;
+         var num=0,cnum=0;
+
+         for (i=0;i<FlightAnalysis.length;i++) {
+             thisfl=FlightAnalysis[i];
+
+             if (thisfl.percimprov) {
+                 num++;
+                 overall+=thisfl.percimprov;
+             }
+
+             if (thisfl.percimprovconstr) {
+                 cnum++;
+                 constrained+=thisfl.percimprovconstr
+             }
+         }
+         console.log("c sum",constrained,"num",cnum,num);
+
+
+         overall/=num;
+         constrained/=cnum;
+
+         map0.set_stats({
+             overall: overall,
+             constrained: constrained,
+             num: num,
+             cnum: cnum
+         });
+
+         //var topflights=FlightAnalysis.slice(0,10);
+         var topflights=[];
+         var c=0;
+         for (i=0;i<FlightAnalysis.length;i++) {
+             if (parseFloat(FlightAnalysis[i].meta["BEST-SEG-D"])>700000.0) {
+                 topflights.push(FlightAnalysis[i]);
+
+                 if (c++>10) break;
+             }
+         }
+
+         it=new DataTable({
+             height: 'auto',
+             width: 600,
+             offsetX: 520,
+             offsetY: -10,
+             rowheight: 20,
+             bgalpha: 0.7,
+             cols: [
+                 {key: 'vname',
+                  title: 'vname'},
+                 {key: 'vval',
+                  title: 'vval',
+                  color: '#ff0000'
+                 }
+             ],
+             canvasobj: map0.canvasobjs['ui'],
+             canvasctx: map0.canvasctxs['ui']
+         });
+
+         it.setdata({
+             something: 7,
+             data: [
+                 {vname:'ORIGIN', vval:'K'},
+                 {vname:'DEST', vval:'K'},
+                 {vname:'TOTAL-TIME', vval:457658},
+                 {vname:'SEGM-TIME', vval:34567},
+                 {vname:'DIST-OPT', vval:0.2},
+                 {vname:'OVERALL-OPT', vval:0.18},
+                 {vname:'CALC-TIME', vval:35.2}
+             ]
+         });
+         it.render();
+         it.register_click_cb(function(a) {
+             console.log("cb:",a);
+         });
+
+         var txts={
+             'ident': "The flight ident the aircraft used during this track.",
+             'origin': "From where the flight departed.",
+             'dest': "To where the flight is headed.",
+             'acftType': "FAA aircraft type identifier.",
+             'arriveTs': "When the aircraft actually arrived in real life.",
+             'deptTs': "When the aircraft actually departed in real life.",
+             'percimprov': "Time and fuel efficiency gain over the original path flown, regardless of path distance.",
+             'percimprovconstr': "Time and fuel efficiency gain over the original path, constrained to only paths of equal or longer distance than that originally flown.",
+             'BEST-SEG-D': "The distance of the analyzed segment of the optimized flightpath.",
+             'BEST-SEG-SECS': "The time taken to fly the optimized flightpath, according to the model.",
+             'CONSTR-BEST-SEG-D': "The distance of the analyzed segment of the constraint-optimized flight path, that is, of equal or longer distance than the original route flown.",
+             'CONSTR-BEST-SEG-SECS': "The time taken to fly the constraint-optimized flight path, according to the model.",
+             'GC-SEG-D': "Great Circle distance from start to end of the analyzed segment of the flight.",
+             'GC-SEG-SECS': "Time required to fly the Great Circle path at that date and time, according to the model.",
+             'OPTIMIZE-SECS': "Time required to optimize this flight path.",
+             'ORIG-SEG-REAL-SECS': "Time taken in real life to fly the analyzed segment.",
+             'ORIG-SEG-SIM-D': "Path length for the originally-flown real route.",
+             'ORIG-SEG-SIM-SECS': "Time taken to fly the original path segment, according to the model."
+         };
+
+         it.register_mouseo_cb(function(a) {
+             console.log("m:",a);
+
+             if (a.t=="mouseon") {
+                 ib.setdata({
+                     title: a.d.vname,
+                     text: txts[a.d.vname]
+                 });
+                 ib.show();
+             } else {
+                 ib.hide();
+             }
+         });
+
+         map0.register_resize_cb(function(o) {
+             console.log("resize fired");
+             it.render();
+         });
+
+
+         function munge_path_data(a) {
+             var r=[];
+
+             var keys=['ident','origin','dest','acftType','arriveTs','deptTs','percimprov','percimprovconstr'];
+             var i;
+             for (i in keys) {
+                 if ((keys[i]=='percimprovconstr')||(keys[i]=='percimprov')) {
+                     r.push({
+                         vname:keys[i],
+                         vval:(Math.round(100*parseFloat(a[keys[i]]))/100)+" %"
+                     });
+
+                 } else if ((keys[i]=='arriveTs')||(keys[i]=='deptTs')) {
+                     var d=new Date(1000*parseInt(a[keys[i]]));
+                     r.push({
+                         vname:keys[i],
+                         vval:d.toUTCString().replace("GMT","Z")
+                     });
+                 } else {
+                     r.push({vname:keys[i], vval:a[keys[i]]});
+                 }
+             }
+
+             var metakeys=['BEST-SEG-D','BEST-SEG-SECS','CONSTR-BEST-SEG-D','CONSTR-BEST-SEG-SECS',
+                           'GC-SEG-D','GC-SEG-SECS','OPTIMIZE-SECS','ORIG-SEG-REAL-SECS','ORIG-SEG-SIM-D',
+                           'ORIG-SEG-SIM-SECS', 'CRUISE-ASPD','OPTIMIZE-SECS','ORIG-SEG-SIM-D'];
+             for (i in metakeys) {
+                 r.push({vname:metakeys[i], vval:a.meta[metakeys[i]]});
+             }
+
+             console.log("giving back:",r);
+             return r;
+         }
+
+         function munge_top_flights(t) {
+             var i;
+             for (i=0;i<t.length;i++) {
+                 if (t[i].percimprov) {
+                     t[i].percimprov=(Math.round(100*t[i].percimprov)/100)+" %";
+                 }
+                 if (t[i].percimprovconstr) {
+                     t[i].percimprovconstr=(Math.round(100*t[i].percimprovconstr)/100)+" %";
+                 } else {
+                     t[i].percimprovconstr="";
+                 }
+             }
+
+             return t;
+         }
+
+         var selid=901;
+
+         for (i=0;i<topflights.length;i++) {
+             if (topflights[i].id==selid) {
+                 topflights[i].selected=true;
+             }
+         }
+
+         ib=new InfoBox({
+             offsetX: (600+530),
+             offsetY: -10,
+             height: 200,
+             titlebgalpha: 0.4,
+             textbgalpha: 0.6,
+             canvasobj: map0.canvasobjs['ui'],
+             canvasctx: map0.canvasctxs['ui']
+         });
+
+         ib.setdata({
+             title: "things are great",
+             text: "To wrap text with HTML5 Canvas, we can create a custom function that requires the canvas context, a text string, a position, a max width, and a line height. The function should use the measureText() method of the canvas context to calculate when the next line should wrap."
+         });
+
+         ib.render();
+
+         dt=new DataTable({
+             height: 'auto',
+             width: 500,
+             offsetX: 10,
+             offsetY: -10,
+             rowheight: 20,
+             bgalpha: 0.7,
+             cols: [
+                 {key: 'ident',
+                  title: 'Ident'},
+                 {key: 'percimprov',
+                  title: 'Overall',
+                  color: '#ff0000'
+                 },
+                 {key: 'percimprovconstr',
+                  title: 'With D'}
+             ],
+             canvasobj: map0.canvasobjs['ui'],
+             canvasctx: map0.canvasctxs['ui']
+         });
+
+         dt.setdata({
+             something: 7,
+             data: munge_top_flights(topflights),
+             /*data: [
+                {ident:'RPA6065', effo:2.3, effd:0.89},
+                {ident:'DAL065', effo:1.3, effd:0.21},
+                {ident:'JBU65', effo:1.24, effd:0.43},
+                {ident:'JBU6065', effo:2.56, effd:0.48},
+                {ident:'AA6065', effo:2.1, effd:0.98}
+                ]*/
+         });
+         dt.render();
+         dt.register_click_cb(function(a) {
+             console.log("clicked id",a.id);
+
+             map0.clear_sel_paths();
+             map0.render_sel_paths(a.id);
+
+             it.setdata({
+                 something:8,
+                 data: munge_path_data(a)
+             });
+             it.render();
+         });
+
+         map0.register_resize_cb(function(o) {
+             dt.render();
+         });
+
+         map0.clear_sel_paths();
+         map0.render_sel_paths(selid);
+
+         var seld;
+         for (i=0;i<FlightAnalysis.length;i++) {
+             if (selid==FlightAnalysis[i].id) {
+                 seld=FlightAnalysis[i];
+                 break;
+             }
+         }
+
+         it.setdata({
+             something:8,
+             data: munge_path_data(seld)
+         });
+         it.render();
+
+         //nab_path_data(874);
+         //nab_path_data('orig');
+         //nab_path_data('current');
+
+         //render_dt();
+
+
+
+     }
+
+    </script>
+    <body onload="init();" bgcolor="#fff">
+        <div id="map0"></div>
+
+        <!--
+             <div id="firstholder" style="border:1px solid #fff">
+             <div id="airspeed0" style="display:inline-block;"></div>
+             <div id="attitude0" style="display:inline-block;"></div>
+             <div id="altitude0" style="display:inline-block;"></div>
+             <div id="elk" style="display:inline-block;">
+             <div id="aoa0" style="display:inline-block;"></div>
+             <table id="datatable0" class="datatable" ></table>
+             </div>
+             </div>
+             <div id="vario0" style="display:inline-block;"></div>
+             <div id="hsi0" style="display:inline-block;"></div>
+             <div id="bargraph0"></div>
+           -->
+
+    </body>
+</html>

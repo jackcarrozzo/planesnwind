@@ -1,0 +1,66 @@
+body, html {
+  font-family: georgia, verdana, arial, sans-serif;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+canvas {
+  position:absolute;
+  border:0px solid #fff;
+}
+
+div {
+  border: 0px solid gray;
+  padding: 00px;
+  margin: 0px;
+}
+
+div.topbar {
+        border: 1px solid gray;
+        padding: 10px;
+        margin: 0px;
+        background-color: #b0c4de;
+        color: white;
+        display: all;
+}
+
+div.bottombar {
+        border: 1px solid gray;
+  padding: 10px;
+  background-color: #b0c4de;
+  color: #333;
+        font-size: x-small;
+}
+
+table.datatable {
+        font-size: 20
+}
+
+tr.actionhead {
+        background-color: #afa;
+        height: 20px;
+}
+
+td {
+        left-padding: 10px;
+        right-padding: 10px;
+}
+
+td.actioncell {
+        padding: 10px;
+}
+
+tr.bg0 {
+        background-color: #eee;
+}
+
+tr.bg1 {
+        background-color: #aaa;
+}
+
+td.blank {
+        background-color: #fff;
+}

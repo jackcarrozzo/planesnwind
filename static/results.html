@@ -1,0 +1,72 @@
+<html>
+  <head>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript" src="results.js"></script>
+		<script type="text/javascript">
+			var parsed_data=null;
+
+			google.charts.load('current', {'packages':['corechart', 'scatter']});
+      google.charts.setOnLoadCallback(drawStuff);
+
+      function drawStuff() {
+				if (!parsed_data) {
+					parsed_data=[];
+					var i,row,dist,bestsecs,origsecs,constrsecs,perci,cperci;
+					for (i=0;i<Results.length;i++) {
+						row=Results[i];
+						dist=parseFloat(row[0])/1852.0; // m per nm
+						bestsecs=parseFloat(row[1]);
+						origsecs=parseFloat(row[2]);
+						if (row.length==4) constrsecs=row[3];
+						else constrsecs=origsecs;
+
+						perci=100.0*(origsecs-bestsecs)/origsecs;
+						cperci=100.0*(origsecs-constrsecs)/origsecs;
+
+						if (cperci<0.0) cperci=0.0;
+
+						parsed_data.push([dist,perci,cperci]);
+					}
+
+					console.log("parsed "+i+"pts, res: ",parsed_data);
+				}
+
+        var button = document.getElementById('change-chart');
+        var chartDiv = document.getElementById('chart_div');
+
+        var data = new google.visualization.DataTable();
+        data.addColumn('number', 'Path Distance, nm');
+        data.addColumn('number', 'Unconstrained Percent Improvement');
+        data.addColumn('number', 'Constrained Percecnt Improvement');
+
+				data.addRows(parsed_data);
+
+        var materialOptions = {
+          chart: {
+            title: 'Path Optimizations',
+            subtitle: 'vs distance'
+          },
+          width: 1600,
+          height: 800,
+          /*series: {
+            0: {axis: 'hours studied'},
+            1: {axis: 'final grade'}
+          },
+          axes: {
+            y: {
+              'hours studied': {label: 'Hours Studied'},
+              'final grade': {label: 'Final Exam Grade'}
+            }
+          }*/
+        };
+
+          var materialChart = new google.charts.Scatter(chartDiv);
+          materialChart.draw(data, google.charts.Scatter.convertOptions(materialOptions));
+
+    };
+	</script>
+  </head>
+  <body>
+    <div id="chart_div" style="width: 900px; height: 500px;"></div>
+  </body>
+</html>
