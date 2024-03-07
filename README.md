@@ -10,7 +10,7 @@ Commercially registered
 routes between those pts. If these routes were dynamically generated right before departure 
 to take advantage of known wind conditions, much fuel and time can be saved.
 
-\* Air traffic controllers, workload and traffic load permitting, are able to verbally
+\* Air traffic controllers, workload and traffic permitting, are able to verbally
 adjust a flight's route in their area, but this is ad hoc and rarely more than a few
 % overall improvement.
 
