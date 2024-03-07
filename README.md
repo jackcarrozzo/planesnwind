@@ -1,14 +1,18 @@
 # planesnwind 
 
-__I wish I had thought of a cooler name for this before writing a jillion lines
-that depend on the package name, but it is at least descriptive.__
+--I wish I had thought of a cooler name for this before writing a jillion lines
+that depend on the package name, but it is at least descriptive.--
 
-* This code optimizes flight paths by being wind-aware.
+** This code optimizes flight paths by being wind-aware.
 
 Commercially registered
-"flights" (ie, "United 333" etc) are not just src-dest pairs but also  mostly-static*
+"flights" (ie, "United 333" etc) are not just src-dest pairs but also mostly-static*
 routes between those pts. If these routes were dynamically generated right before departure 
 to take advantage of known wind conditions, much fuel and time can be saved.
+
+\* Air traffic controllers, workload and traffic load permitting, are able to verbally
+adjust a flight's route in their area, but this is ad hoc and rarely more than a few
+% overall improvement.
 
 Simplified actions:
 
@@ -19,4 +23,5 @@ Simplified actions:
 - Use genetic algorithms to adjust flight path to use less fuel / less flight time
 - Produce cool maps of optimized paths and sum metrics
 
-* The mean flight fuel saving on a given day is between 11% and 18%!
+** The mean flight fuel saving on a given day for ALL continental flights is 
+between 11% and 18%! On windy days, many flights are improved by 30% or more.
